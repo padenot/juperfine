@@ -1,0 +1,35 @@
+{
+  "name": "juperfine",
+  "version": "0.1.0",
+  "description": "Adaptive statistical benchmarking for JavaScript and TypeScript",
+  "author": "Paul Adenot <padenot@mozilla.com>",
+  "license": "MPL-2.0",
+  "type": "module",
+  "files": [
+    "dist",
+    "examples"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "scripts": {
+    "test": "node --test tests/runner.test.mjs tests/stats.test.mjs tests/warnings.test.mjs",
+    "test:hyperfine": "node --test tests/hyperfine.test.mjs",
+    "test:broken": "node --test tests/broken.test.mjs",
+    "test:fixtures": "uv run tests/generate-fixtures.py",
+    "clean": "rm -rf dist",
+    "build": "tsc && cp src/kde.js dist/kde.js",
+    "build:bundle": "esbuild src/index.ts --bundle --format=esm --outfile=dist/juperfine.js --platform=neutral"
+  },
+  "devDependencies": {
+    "@types/node": "^25.6.0",
+    "esbuild": "^0.28.0",
+    "typescript": "^5.0.0"
+  }
+}
