@@ -79,9 +79,31 @@ bench(name, fn, opts?)          // register a single benchmark
 compare(name, base, cand, opts?) // register an in-process comparison
 compareData(name, base, cand)    // compare pre-collected sample arrays
 run(opts?)                       // execute all registered benchmarks
+shouldStop(samples, opts?)       // adaptive stopping for out-of-process collection
 ```
 
 `opts` controls `warmupTime` (ms, default 500), `minSamples` (default 30), `maxSamples` (default 300), and `targetPrecision` (default 0.01).
+
+### Out-of-process adaptive sampling with `shouldStop`
+
+When the benchmark runs in a separate process (e.g. a browser driven via
+WebDriver), use `shouldStop` to decide when you have enough samples instead of
+collecting a fixed count:
+
+```js
+import { shouldStop, compareData, run } from "juperfine";
+
+const samples = [];
+while (!shouldStop(samples)) {
+  const score = await runBenchmarkOnce();   // your external benchmark
+  samples.push(1 / score);                  // invert if higher-is-better
+}
+// then compareData(...) as usual
+```
+
+`shouldStop(samples, opts?)` returns `true` when `stddev / sqrt(n) / mean <=
+targetPrecision` (same criterion as `collectSamples` internally), subject to
+`minSamples` (default 10) and `maxSamples` (default 100).
 
 ## Warnings
 

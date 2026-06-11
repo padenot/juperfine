@@ -1,4 +1,5 @@
 import { collectSamples, type BenchFn, type SampleOptions } from "./runner.js";
+import { mean, stddev } from "./stats.js";
 import { reportBench, reportCompare, output, type BenchRecord, type CompareRecord } from "./reporter.js";
 
 interface BenchEntry {
@@ -94,6 +95,21 @@ function writeSync(path: string, content: string): boolean {
     // fall through
   }
   return false;
+}
+
+// Check whether an externally-collected sample array has reached the same
+// precision target used internally by collectSamples(). Call after each new
+// sample to decide when to stop collecting from an out-of-process benchmark.
+export function shouldStop(
+  samples: number[],
+  opts: { minSamples?: number; maxSamples?: number; targetPrecision?: number } = {},
+): boolean {
+  const { minSamples = 10, maxSamples = 100, targetPrecision = 0.01 } = opts;
+  if (samples.length >= maxSamples) return true;
+  if (samples.length < minSamples) return false;
+  const m = mean(samples);
+  if (m <= 0) return false;
+  return stddev(samples) / Math.sqrt(samples.length) / m <= targetPrecision;
 }
 
 export type { BenchFn, SampleOptions, BenchRecord, CompareRecord };
